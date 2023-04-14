@@ -2,6 +2,7 @@
 
 #imports
 import pygame, math, sys, time, numpy
+from pygame import gfxdraw
 from pygame.locals import *
 
 #functions
@@ -10,14 +11,14 @@ def expand(arr, path, screen, c = (200, 255, 255)):
     if path[-1] == end:
         return True
     
-    if path[-1][0] + 1 < arr.shape[0] and not arr[path[-1][0] + 1, path[-1][1]]: #right
-        newpaths += path + [(path[-1][0] + 1, path[-1][1])], 
-    if path[-1][0] - 1 >= 0 and not arr[path[-1][0] - 1, path[-1][1]]: #left
-        newpaths += path + [(path[-1][0] - 1, path[-1][1])], 
-    if path[-1][1] + 1 < arr.shape[1] and not arr[path[-1][0], path[-1][1] + 1]: #down
-        newpaths += path + [(path[-1][0], path[-1][1] + 1)], 
     if path[-1][1] - 1 >= 0 and not arr[path[-1][0], path[-1][1] - 1]: #up
         newpaths += path + [(path[-1][0], path[-1][1] - 1)], 
+    if path[-1][1] + 1 < arr.shape[1] and not arr[path[-1][0], path[-1][1] + 1]: #down
+        newpaths += path + [(path[-1][0], path[-1][1] + 1)], 
+    if path[-1][0] - 1 >= 0 and not arr[path[-1][0] - 1, path[-1][1]]: #left
+        newpaths += path + [(path[-1][0] - 1, path[-1][1])], 
+    if path[-1][0] + 1 < arr.shape[0] and not arr[path[-1][0] + 1, path[-1][1]]: #right
+        newpaths += path + [(path[-1][0] + 1, path[-1][1])], 
         
     for p in newpaths:
         arr[p[-1]] = 2
@@ -33,9 +34,16 @@ def lerp_color(color, color2, t):
     return [lerp(color[i], color2[i], t) for i in range(len(color))]
 
 #constants
-IMG = pygame.image.load('maze9.png')
+IMG = pygame.image.load('maze10.jpg')
 ZOOM = 1
 FPS = 500
+
+# Render control
+INSTENSITY = 1000
+PATH_COLOR = (0, 255, 255, 200)
+COLOR = (255,155,0)
+COLOR2 = (200,0, 255)
+
 WIDTH = IMG.get_width() * ZOOM
 HEIGHT = IMG.get_height() * ZOOM
 arr = []
@@ -97,10 +105,10 @@ while 1:
         
         newpaths = []
         for t in range(len(paths)):
-            n = 1 - min(500 / len(paths[t]), 1)
-            l = expand(arr, paths[t], screen, lerp_color((255,155,0), (200,0, 255), n))
+            n = 1 - min(INSTENSITY / len(paths[t]), 1)
+            l = expand(arr, paths[t], screen, lerp_color(COLOR, COLOR2, n))
             if l == True:
-                r = [paths[t]]
+                r = paths[t]
                 break
             newpaths += l
         paths = newpaths
@@ -113,8 +121,8 @@ while 1:
             end_time = time.time()
             print('time elapsed:', end_time - start_time, 'secs')
             pygame.display.set_caption('Solved!')
-            for i in min(r, key = len):
-                pygame.draw.rect(screen, (0, 255, 255), (i[0] * ZOOM, i[1] * ZOOM, ZOOM, ZOOM))
+            for i in r:
+                gfxdraw.box(screen, (i[0] * ZOOM-1, i[1] * ZOOM-1, ZOOM+1, ZOOM+1), PATH_COLOR)
                 
             running = False
             
